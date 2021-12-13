@@ -1,0 +1,70 @@
+---
+- name: Install Docker for Ubuntu and RedHat
+  hosts: all
+  become: yes
+
+  tasks:
+  - block:
+    - name: Установка пакетов
+      apt: pkg={{ item }} state=latest
+      with_items:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg-agent
+      - software-properties-common 
+
+    - name: get Ubuntu version
+      shell: lsb_release -cs
+      register: ubuntu_version
+  
+    - name: Add an apt signing key for docker
+      apt_key:
+      url: https://download.docker.com/linux/ubuntu/gpg
+      state: present
+    
+    - name: Add apt repository
+      apt_repository:
+        repo: "deb [arch=amd6] https://download.docker.com/linux/ubuntu  {{ubuntu_version.stdout}} stable"
+        state: present
+    
+    - name Install doker and depend
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+    when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'  
+#===========================================================================================================================================
+  - block:
+    - name: Установка пакетов
+      yum: pkg={{ item }} state=latest
+      with_items:
+      - yum-utils
+      - ca-certificates
+      - curl
+      - gnupg-agent
+      - software-properties-common
+
+
+    - name: Add Docker repo
+      get_url:
+        url: https://download.docker.com/linux/centos/docker-ce.repo
+        dest: /etc/yum.repos.d/docker-ce.repo
+ 
+    - name: Install Docker
+      package:
+        name: docker-ce
+        state: latest      
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+        become: yes
+    when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
