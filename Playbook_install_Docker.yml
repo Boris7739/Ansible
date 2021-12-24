@@ -28,7 +28,7 @@
         repo: "deb [arch=amd6] https://download.docker.com/linux/ubuntu  {{ubuntu_version.stdout}} stable"
         state: present
     
-    - name Install doker and depend
+    - name: Install doker and depend
       apt:
         name: "{{ packages }}"
         state: present
