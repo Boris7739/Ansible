@@ -1,0 +1,11 @@
+#!/bin/bash
+echo 'Script working!'
+groupadd -r wildfly
+useradd -r -g wildfly -d /opt/wildfly -s /sbin/nologin wildfly
+if [[ "${?}" -ne 0 ]] ## ${?} - возвращает статус выполнения предыдущей команды
+then 
+  echo 'The command is not completed or user already exists.'
+  echo "Is there user 'wildfly'?"
+  cat /etc/passwd | grep wildfly
+  exit 0
+fi

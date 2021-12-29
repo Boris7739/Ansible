@@ -1,0 +1,23 @@
+!#/bin/bash
+
+ln -s /opt/wildfly-16.0.0.Final /opt/wildfly
+chown -RH wildfly: /opt/
+mkdir -p /etc/wildfly
+cp /opt/wildfly/docs/contrib/scripts/systemd/wildfly.conf /etc/wildfly/
+if [[ "${?}" -ne 0 ]] ## ${?} - возвращает статус выполнения предыдущей команды
+then
+  echo 'all steps was passed1'
+fi
+cp /opt/wildfly/docs/contrib/scripts/systemd/launch.sh /opt/wildfly/bin/
+chmod +x /opt/wildfly/bin/*.sh
+if [[ "${?}" -ne 0 ]] ## ${?} - возвращает статус выполнения предыдущей команды
+then
+  echo 'all steps was passed2'
+fi
+cp /opt/wildfly/docs/contrib/scripts/systemd/wildfly.service /etc/systemd/system/
+systemctl daemon-reload
+
+if [[ "${?}" -ne 0 ]] ## ${?} - возвращает статус выполнения предыдущей команды
+then
+  echo 'all steps was passed3'
+fi

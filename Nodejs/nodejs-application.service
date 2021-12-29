@@ -1,0 +1,13 @@
+[Service]
+WorkingDirectory=/opt/nodejs
+ExecStart=/usr/bin/node app.js
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=nodejs-application
+User=nodejs
+Group=nodejs
+Environment='NODE_ENV=production'
+
+[Install]
+WantedBy=multi-user.target

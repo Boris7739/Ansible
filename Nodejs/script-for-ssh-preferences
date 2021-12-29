@@ -1,0 +1,15 @@
+#!/bin/bash
+echo 'PermitRootLogin no' >> /etc/ssh/sshd_config
+sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config
+cat /etc/ssh/sshd_config | grep PasswordAuthentication
+echo 'Create user and group nodejs'
+groupadd -r nodejs
+useradd -r -g nodejs -d /opt/nodejs -s /sbin/nologin nodejs
+chown -r nodejs:nodejs /opt/nodejs
+if [[ "${?}" -ne 0 ]] ## ${?} - возвращает статус выполнения предыдущей команды
+then 
+  echo 'The command is not completed or user already exists.'
+  echo "Is there user 'nodejs'?"
+  cat /etc/passwd | grep nodejs
+  exit 0
+fi

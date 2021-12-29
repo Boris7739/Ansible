@@ -1,0 +1,49 @@
+---
+- name: Install and run Wildfly
+  hosts: all
+  become: yes
+
+  tasks:
+  - name: Check java version
+    shell: java --version
+    register: java
+  - name: show jersion
+    debug: var=java.stdout_lines
+  - name: Install openjdk
+    apt: 
+      name: openjdk-11-jdk
+      state: latest
+  - name: Create user
+    copy: src=./{{ item }} dest=/root/ mode='0555'
+    with_items:
+    - script-for-ansible1
+    - script-for-ansible2
+  - name: Set first script 
+    shell: /root/script-for-ansible1
+    register: shell1
+  - name: Show output1
+    debug: var=shell1.stdout_lines
+  - name: Load packeges for Wildfly
+    get_url:
+      url: https://download.jboss.org/wildfly/16.0.0.Final/wildfly-16.0.0.Final.tar.gz
+      dest: /opt/
+      mode: 0555
+    ignore_errors: yes
+  - name: Unzip
+    unarchive:
+      src: /opt/wildfly-16.0.0.Final.tar.gz
+      dest: /opt/
+      remote_src: yes
+    ignore_errors: yes
+  - name: Set second script 
+    shell: /root/script-for-ansible2
+    register: shell2
+  - name: Show output2
+    debug: var=shell2.stdout_lines
+  - name: Start and enable Wildfly
+    service: name=wildfly state=started enabled=yes
+  - name: Check running wildfly
+    shell: systemctl status wildfly
+    register: status
+  - name: Show check
+    debug: var=status.stdout_lines

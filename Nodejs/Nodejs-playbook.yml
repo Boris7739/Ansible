@@ -1,0 +1,55 @@
+---
+- name: Install and start Nodejs app
+  hosts: all
+  become: yes
+
+  tasks:
+  - name: Update system
+    yum: name=* state=latest
+  - name: Install Epel-repo
+    yum: 
+      name: epel-release
+      state: latest
+  - name: Install Remi-repo
+    yum: name=https://rpms.remirepo.net/enterprise/remi-release-7.rpm
+  - name: Install Nodejs
+    yum:
+      name: nodejs
+      state: latest
+  - name: check version
+    shell: |
+      npm --version
+      node --version
+    register: npm
+  - name: Show check
+    debug:
+      var=npm.stdout_lines
+  - name: Create nodejs dir
+    file: path=/opt/nodejs state=directory
+  - name: Copy files
+    copy: src=./{{ item }} dest=/opt/nodejs mode='0555'
+    with_items:
+    - script-for-ssh-preferences
+    - app.js
+    - package.json
+  - name: Set script for OpenSsh-server and create user nodejs.
+    shell: /opt/nodejs/script-for-ssh-preferences
+    register: shell1
+  - name: Show output1
+    debug: var=shell1.stdout_lines
+  - name: Load module express
+    shell: npm install express --save
+    register: express
+  - name: Check server express
+    debug: var=express.stdout_lines
+  - name: Copy files
+    copy: src=./{{ item }} dest=/etc/systemd/system/ mode='0555'
+    with_items:
+    - nodejs-application.service
+  - name: Reload systemctl daemon
+    shell: systemctl daemon-reload
+  - name: Start and enable Nodejs
+    service: name=nodejs-application state=started enabled=yes
+    register: node2
+  - name: Check daemon
+    debug: var=node2
