@@ -5,6 +5,12 @@
         },
         {
             "path": "../../../Ansible-test"
+        },
+        {
+            "path": "../../../Bash-test"
+        },
+        {
+            "path": "../../Bash/Bash"
         }
     ]
 }
