@@ -1,0 +1,106 @@
+---
+- name: Install and run Prometheus/Grafana
+  hosts: all
+  become: yes
+
+  tasks:
+  - name: Update system
+    apt: 
+      update_cache: yes
+
+  - name: Copy files
+    copy: src=./{{ item }} dest=/root/ mode='0555'
+    with_items: 
+      - alert.rules.yml
+      - daemon-prometheus
+      - daemon-alertmanager
+      - daemon-nodeexporter
+      - scripts-for-ports.sh
+      - script-for-create-user.sh
+      - script-for-create-folder.sh
+
+  - name: Download prometheus
+    get_url:
+      url: https://github.com/prometheus/prometheus/releases/download/v2.20.1/prometheus-2.20.1.linux-arm64.tar.gz 
+      dest: /root/
+      mode: '0440'
+      timeout: 500
+  - name: Download alertmanager
+    get_url:
+      url: https://github.com/prometheus/alertmanager/releases/download/v0.21.0/alertmanager-0.21.0.linux-arm64.tar.gz  
+      dest: /root/
+      mode: '0440'
+      timeout: 500
+  - name: Download nodeexporter
+    get_url:
+      url: https://github.com/prometheus/node_exporter/releases/download/v1.0.1/node_exporter-1.0.1.linux-arm64.tar.gz
+      dest: /root/
+      mode: '0440'
+      timeout: 500
+
+  - name: Unarchive nodeexporter
+    ansible.builtin.unarchive:
+      src: /root/node_exporter-1.0.1.linux-arm64.tar.gz
+      dest: /root/
+      remote_src: yes
+  - name: Unarchive alertmanager
+    ansible.builtin.unarchive:
+      src: /root/alertmanager-0.21.0.linux-arm64.tar.gz
+      dest: /root/
+      remote_src: yes
+  - name: Unarchive prometheus
+    ansible.builtin.unarchive:
+      src: /root/prometheus-2.20.1.linux-arm64.tar.gz
+      dest: /root/
+      remote_src: yes
+      
+
+  - name: Copy prometheus_1
+    copy:
+      src: /root/prometheus-2.20.1.linux-arm64/prometheus
+      dest: /usr/local/bin/ 
+      remote_src: yes
+  - name: Copy prometheus_2
+    copy:
+      src: /root/prometheus-2.20.1.linux-arm64/promtool
+      dest: /usr/local/bin/ 
+      remote_src: yes
+
+  - name: Copy alertmanager_1
+    copy:
+      src: /root/alertmanager-0.21.0.linux-arm64/alertmanager
+      dest: /usr/local/bin/ 
+      remote_src: yes
+  - name: Copy alertmanager_2
+    copy:
+      src: /root/alertmanager-0.21.0.linux-arm64/amtool
+      dest: /usr/local/bin/ 
+      remote_src: yes
+
+  - name: Copy nodeexporter
+    copy:
+      src: /root/node_exporter-1.0.1.linux-arm64/node_exporter
+      dest: /usr/local/bin/ 
+      remote_src: yes
+  - name: Update system
+    apt: 
+      update_cache: yes
+  - name: Set script for ports
+    shell: /root/scripts-for-ports.sh
+    register: ports
+  - name: Check script 1
+    debug: var=ports.stdout_lines
+  - name: Check script 1.2
+    debug: var=ports.stderr_lines
+
+  - name: Set script for folder
+    shell: /root/script-for-create-folder.sh
+    register: folder
+  - name: Check script 2
+    debug: var=folder.stdout_lines
+
+  - name: Set script for users
+    shell: /root/script-for-create-user.sh
+    register: user
+  - name: Check script 3
+    debug: var=user
